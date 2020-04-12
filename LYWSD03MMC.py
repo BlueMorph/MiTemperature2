@@ -186,7 +186,8 @@ class MyDelegate(btle.DefaultDelegate):
 # Initialisation  -------
 
 def connect():
-	p = btle.Peripheral(adress)	
+	#print("Interface: " + str(args.interface))
+	p = btle.Peripheral(adress,iface=args.interface)	
 	val=b'\x01\x00'
 	p.writeCharacteristic(0x0038,val,True) #enable notifications of Temperature, Humidity and Battery voltage
 	p.writeCharacteristic(0x0046,b'\xf4\x01\x00',True)
@@ -194,10 +195,12 @@ def connect():
 	return p
 
 # Main loop --------
-parser=argparse.ArgumentParser()
+parser=argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--device","-d", help="Set the device MAC-Address in format AA:BB:CC:DD:EE:FF",metavar='AA:BB:CC:DD:EE:FF')
 parser.add_argument("--battery","-b", help="Get estimated battery level", metavar='', type=int, nargs='?', const=1)
 parser.add_argument("--count","-c", help="Read/Receive N measurements and then exit script", metavar='N', type=int)
+parser.add_argument("--interface","-i", help="Specifiy the interface number to use, e.g. 1 for hci1", metavar='N', type=int, default=0)
+
 
 rounding = parser.add_argument_group("Rounding and debouncing")
 rounding.add_argument("--round","-r", help="Round temperature to one decimal place",action='store_true')
@@ -307,7 +310,7 @@ while True:
 					bluepypid=re.findall(r'bluepy-helper\((.*)\)',pstree)[0] #Store the bluepypid, to kill it later
 				except IndexError: #Should normally occur because we're disconnected
 					logging.debug("Couldn't find pid of bluepy-helper")
-				if bluepypid is not 0:
+				if bluepypid != 0:
 					os.system("kill " + bluepypid)
 					logging.debug("Killed bluepy with pid: " + str(bluepypid))
 				os._exit(0)
